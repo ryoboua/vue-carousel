@@ -4,10 +4,7 @@
       <div ref="carouselSlider" class="carousel-slider">
         <Card
           ref="card"
-          v-for="(d, i) in cardsData.slice(
-            cardsData.length - numOfCardsDisplayed,
-            numOfCardsDisplayed.length
-          )"
+          v-for="(d, i) in backClones"
           :key="`backClone${i}`"
           :data="d"
           id="backClone"
@@ -22,7 +19,7 @@
         />
         <Card
           ref="card"
-          v-for="(d, i) in cardsData.slice(0, numOfCardsDisplayed)"
+          v-for="(d, i) in frontClones"
           :key="`frontClone${i}`"
           :data="d"
           id="frontClone"
@@ -46,36 +43,24 @@ export default {
     this.position = this.initialPosition
     this.$refs.carouselSlider.style.transform = `translateX(${-this.position *
       (this.cardWidth + 50)}px)`
-
+      
     this.$refs.carouselSlider.addEventListener("transitionend", () => {
-      if (
-        this.$refs.card[this.position].$el.id === "frontClone" &&
-        this.$refs.card[this.position + 1].$el.id === "frontClone" &&
-        this.$refs.card[this.position + 2].$el.id === "frontClone"
-      ) {
-        this.$refs.carouselSlider.style.transition = "none"
-        this.position = this.initialPosition
-        this.$refs.carouselSlider.style.transform = `translateX(${-this
-          .position *
-          (this.cardWidth + 50)}px)`
-      }
-
-      if (
-        this.$refs.card[this.position].$el.id === "backClone" &&
-        this.$refs.card[this.position + 1].$el.id === "backClone" &&
-        this.$refs.card[this.position + 2].$el.id === "backClone"
-      ) {
-        this.$refs.carouselSlider.style.transition = "none"
-        this.position = this.cardsData.length
-        this.$refs.carouselSlider.style.transform = `translateX(${-this
-          .position *
-          (this.cardWidth + 50)}px)`
-      }
+      this.handleTransitionEnd("frontClone")
+      this.handleTransitionEnd("backClone")
     })
   },
   computed: {
     cardWidth: function() {
       return this.$refs.card[0].$el.getBoundingClientRect().width
+    },
+    frontClones: function() {
+      return this.cardsData.slice(0, this.numOfCardsDisplayed)
+    },
+    backClones: function() {
+      return this.cardsData.slice(
+        this.cardsData.length - this.numOfCardsDisplayed,
+        this.cardsData.length
+      )
     },
   },
   data() {
@@ -100,6 +85,26 @@ export default {
       this.position--
       this.$refs.carouselSlider.style.transform = `translateX(${-this.position *
         (this.cardWidth + 50)}px)`
+    },
+    handleTransitionEnd(id) {
+      let cloneCount = 0
+      for (
+        let i = this.position;
+        i < this.position + this.numOfCardsDisplayed;
+        i++
+      ) {
+        if (this.$refs.card[i].$el.id === id) {
+          cloneCount++
+        }
+      }
+      if (cloneCount === this.numOfCardsDisplayed) {
+        this.$refs.carouselSlider.style.transition = "none"
+        this.position =
+          id === "frontClone" ? this.initialPosition : this.cardsData.length
+        this.$refs.carouselSlider.style.transform = `translateX(${-this
+          .position *
+          (this.cardWidth + 50)}px)`
+      }
     },
   },
 }
